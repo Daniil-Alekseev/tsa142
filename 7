@@ -1,0 +1,143 @@
+#include <iostream>
+#include <cstdlib>  // Для функции rand() и srand()
+#include <ctime>    // Для функции time()
+#include <vector>   // Для использования динамического массива
+#include <cmath>    // Для функции abs()
+
+using namespace std;
+
+/**
+ * Функция для заполнения массива случайными числами.
+ * @param matrix Ссылка на двумерный вектор (матрицу).
+ * @param n Количество строк.
+ * @param m Количество столбцов.
+ * @param min Минимальное значение случайного числа.
+ * @param max Максимальное значение случайного числа.
+ */
+void fillRandom(vector<vector<int>>& matrix, int n, int m, int min, int max) {
+    for (int i = 0; i < n; ++i) {
+        vector<int> row;
+        for (int j = 0; j < m; ++j) {
+            row.push_back(rand() % (max - min + 1) + min);  // Генерация случайного числа в диапазоне [min, max]
+        }
+        matrix.push_back(row);
+    }
+}
+
+/**
+ * Функция для заполнения массива вручную с клавиатуры.
+ * @param matrix Ссылка на двумерный вектор (матрицу).
+ * @param n Количество строк.
+ * @param m Количество столбцов.
+ */
+void fillManual(vector<vector<int>>& matrix, int n, int m) {
+    for (int i = 0; i < n; ++i) {
+        vector<int> row;
+        for (int j = 0; j < m; ++j) {
+            int num;
+            cout << "Введите элемент [" << i << "][" << j << "]: ";
+            cin >> num;
+            row.push_back(num);
+        }
+        matrix.push_back(row);
+    }
+}
+
+/**
+ * Функция для вывода массива на экран.
+ * @param matrix Константная ссылка на двумерный вектор (матрицу).
+ */
+void printMatrix(const vector<vector<int>>& matrix) {
+    for (const auto& row : matrix) {
+        for (int num : row) {
+            cout << num << "\t";
+        }
+        cout << endl;
+    }
+}
+
+/**
+ * Функция для замены максимального по модулю элемента каждой строки на противоположный.
+ * @param matrix Ссылка на двумерный вектор (матрицу).
+ */
+void replaceMaxAbs(vector<vector<int>>& matrix) {
+    for (auto& row : matrix) {
+        if (row.empty()) continue;  // Пропуск пустых строк
+        int maxAbsIndex = 0;
+        for (int j = 1; j < row.size(); ++j) {
+            if (abs(row[j]) > abs(row[maxAbsIndex])) {
+                maxAbsIndex = j;  // Находим индекс максимального по модулю элемента
+            }
+        }
+        row[maxAbsIndex] = -row[maxAbsIndex];  // Меняем знак на противоположный
+    }
+}
+
+/**
+ * Функция для вставки первой строки после каждой четной строки.
+ * @param matrix Ссылка на двумерный вектор (матрицу).
+ */
+void insertFirstRowAfterEven(vector<vector<int>>& matrix) {
+    if (matrix.empty()) return;  // Если матрица пуста, ничего не делаем
+    vector<vector<int>> newMatrix;
+    for (int i = 0; i < matrix.size(); ++i) {
+        newMatrix.push_back(matrix[i]);  // Добавляем текущую строку
+        if (i % 2 == 0) {  // Если строка четная (индексация с 0)
+            newMatrix.push_back(matrix[0]);  // Вставляем первую строку
+        }
+    }
+    matrix = newMatrix;  // Обновляем исходную матрицу
+}
+
+/**
+ * Основная функция программы.
+ * Управляет вводом данных, вызовом функций и выводом результатов.
+ * @return 0 в случае успешного выполнения.
+ */
+int main() {
+    srand(time(0));  // Инициализация генератора случайных чисел
+
+    int n, m;
+    cout << "Введите количество строк (n): ";
+    cin >> n;
+    cout << "Введите количество столбцов (m): ";
+    cin >> m;
+
+    if (n <= 0 || m <= 0) {
+        cout << "Ошибка: размеры матрицы должны быть положительными." << endl;
+        return 1;
+    }
+
+    vector<vector<int>> matrix;
+
+    int choice;
+    cout << "Выберите способ заполнения матрицы (1 - случайные числа, 2 - вручную): ";
+    cin >> choice;
+
+    if (choice == 1) {
+        int min, max;
+        cout << "Введите минимальное значение случайного числа: ";
+        cin >> min;
+        cout << "Введите максимальное значение случайного числа: ";
+        cin >> max;
+        fillRandom(matrix, n, m, min, max);
+    } else if (choice == 2) {
+        fillManual(matrix, n, m);
+    } else {
+        cout << "Ошибка: неверный выбор." << endl;
+        return 1;
+    }
+cout << "Исходная матрица:" << endl;
+    printMatrix(matrix);
+
+    // Выполнение задач варианта 1
+    replaceMaxAbs(matrix);
+    cout << "Матрица после замены максимальных по модулю элементов:" << endl;
+    printMatrix(matrix);
+
+    insertFirstRowAfterEven(matrix);
+    cout << "Матрица после вставки первой строки после каждой четной:" << endl;
+    printMatrix(matrix);
+
+    return 0;
+}
