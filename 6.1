@@ -1,0 +1,78 @@
+#include <iostream>
+#include <cmath>
+#include <limits>
+
+using namespace std;
+
+/**
+ * Вычисляет сумму первых n членов последовательности с использованием рекуррентного соотношения
+ * Последовательность: a_k = (-1)^k / ((k+2)! * (k+3)!)
+ * @param n Количество членов последовательности
+ * @return Сумма первых n членов
+ */
+double sum_first_n_terms(int n) {
+    if (n < 0) return 0.0;
+    
+    double sum = 0.0;
+    double current_term = 1.0 / 12.0; // a_0 = 1/(2!*3!) = 1/12
+    
+    for (int k = 0; k <= n; ++k) {
+        sum += current_term;
+        // Рекуррентное соотношение: a_{k+1} = -a_k * (k+1)/((k+4)(k+5))
+        current_term *= -1.0 * (k + 1) / ((k + 4) * (k + 5));
+    }
+    
+    return sum;
+}
+
+/**
+ * Вычисляет сумму членов последовательности, модуль которых не меньше e
+ * @param e Минимальное абсолютное значение члена последовательности
+ * @return Сумма подходящих членов последовательности
+ */
+double sum_terms_above_e(double e) {
+    if (e <= 0) return 0.0;
+    
+    double sum = 0.0;
+    double current_term = 1.0 / 12.0; // a_0 = 1/12
+    int k = 0;
+    
+    while (abs(current_term) >= e) {
+        sum += current_term;
+        k++;
+        // Рекуррентное соотношение для следующего члена
+        current_term *= -1.0 * k / ((k + 3) * (k + 4));
+        
+        // Защита от бесконечного цикла
+        if (k > 1000) break;
+    }
+    
+    return sum;
+}
+
+int main() {
+    int n;
+    double e;
+
+    // Ввод n с проверкой
+    cout << "Введите количество членов последовательности (n >= 0): ";
+    while (!(cin >> n) || n < 0) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Ошибка! Введите целое число >= 0: ";
+    }
+
+    // Ввод e с проверкой
+    cout << "Введите минимальное абсолютное значение (e > 0): ";
+    while (!(cin >> e) || e <= 0) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Ошибка! Введите число > 0: ";
+    }
+
+    // Вычисление и вывод результатов
+    cout << "Сумма первых " << n << " членов: " << sum_first_n_terms(n) << endl;
+    cout << "Сумма членов с |a_k| >= " << e << ": " << sum_terms_above_e(e) << endl;
+
+    return 0;
+}
