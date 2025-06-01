@@ -1,89 +1,163 @@
-#include <iostream>   // Для ввода/вывода (cin, cout)
-#include <cmath>      // Для математических функций (pow, abs)
-#include <limits>     // Для работы с пределами числовых типов
+#include <iostream>
+#include <cmath>
+#include <limits>
+#include <stdexcept>
 
-using namespace std;  // Использование стандартного пространства имен
+using namespace std;
+
+// Прототипы функций
+/**
+* @brief Вычисляет факториал числа
+* @param n Неотрицательное целое число
+* @return Факториал числа n
+* @throws invalid_argument если n отрицательное
+*/
+unsigned long long factorial(int n);
 
 /**
- * Вычисляет факториал числа n (n!)
- * @param n Целое число, для которого вычисляется факториал
- * @return Значение факториала (n!)
- */
-unsigned long long factorial(int n) {
-    if (n < 0) return 0;  // Факториал отрицательного числа не определен
-    unsigned long long result = 1;  // Инициализация результата
-    for (int i = 1; i <= n; ++i) {  // Цикл от 1 до n
-        result *= i;  // Умножение результата на текущее число
-    }
-    return result;  // Возврат вычисленного факториала
-}
+* @brief Вычисляет член последовательности
+* @param k Индекс члена последовательности
+* @return Значение k-го члена последовательности
+*/
+double calculateSequenceTerm(int k);
 
 /**
- * Вычисляет сумму первых n членов последовательности
- * Последовательность: a_k = (-1)^k / ((k+2)! * (k+3)!)
- * @param n Количество суммируемых членов последовательности
- * @return Сумма первых n членов
- */
-double sum_first_n_terms(int n) {
-    double sum = 0.0;  // Инициализация суммы
-    for (int k = 0; k <= n; ++k) {  // Цикл по всем членам от 0 до n
-        double numerator = pow(-1, k);  // Числитель: (-1)^k
-        unsigned long long denominator = factorial(k + 2) * factorial(k + 3);  // Знаменатель: (k+2)!*(k+3)!
-        sum += numerator / denominator;  // Добавление текущего члена к сумме
-    }
-    return sum;  // Возврат вычисленной суммы
-}
+* @brief Вычисляет сумму первых n членов последовательности
+* @param n Количество членов (должно быть >= 0)
+* @return Сумма членов
+* @throws invalid_argument если n отрицательное
+*/
+double sumFirstNTerms(int n);
 
 /**
- * Вычисляет сумму членов последовательности с модулем ≥ e
- * @param e Минимальное абсолютное значение члена последовательности
- * @return Сумма членов, удовлетворяющих условию |a_k| >= e
- */
-double sum_terms_above_e(double e) {
-    if (e <= 0) return 0.0;  // Проверка корректности e
-    
-    double sum = 0.0;  // Инициализация суммы
-    int k = 0;         // Индекс текущего члена
-    while (true) {     // Бесконечный цикл (выход по условию)
-        double numerator = pow(-1, k);  // Числитель: (-1)^k
-        unsigned long long denominator = factorial(k + 2) * factorial(k + 3);  // Знаменатель
-        double current_term = numerator / denominator;  // Текущий член последовательности
-        
-        if (abs(current_term) < e) break;  // Выход, если член слишком мал
-        
-        sum += current_term;  // Добавление члена к сумме
-        k++;                  // Переход к следующему члену
-        
-        if (k > 1000) break;  // Защита от бесконечного цикла
-    }
-    
-    return sum;  // Возврат вычисленной суммы
-}
+* @brief Вычисляет сумму членов последовательности с |член| >= e
+* @param e Минимальное абсолютное значение (должно быть > 0)
+* @return Сумма подходящих членов
+* @throws invalid_argument если e не положительное
+*/
+double sumTermsAboveE(double e);
 
+/**
+* @brief Безопасно получает целое число >= 0 от пользователя
+* @param prompt Приглашение для ввода
+* @return Введенное число
+* @throws runtime_error при ошибке ввода
+*/
+int getNonNegativeInteger(const string& prompt);
+
+/**
+* @brief Безопасно получает положительное число от пользователя
+* @param prompt Приглашение для ввода
+* @return Введенное число
+* @throws runtime_error при ошибке ввода
+*/
+double getPositiveDouble(const string& prompt);
+
+/**
+* @brief Главная функция программы
+* @return 0 при успешном выполнении
+*/
 int main() {
-    int n;     // Количество членов последовательности
-    double e;  // Минимальное абсолютное значение члена
+    try {
+        // Ввод данных
+        int n = getNonNegativeInteger(
+            "Введите количество членов последовательности (n >= 0): ");
+        
+        double e = getPositiveDouble(
+            "Введите минимальное абсолютное значение (e > 0): ");
 
-    // Блок ввода n с проверкой
-    cout << "Введите количество членов последовательности (n >= 0): ";
-    while (!(cin >> n) || n < 0) {  // Проверка корректности ввода
-        cin.clear();  // Сброс флагов ошибок
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // Очистка буфера
-        cout << "Ошибка! Введите целое число >= 0: ";  // Сообщение об ошибке
+        // Вычисления
+        double sum_n = sumFirstNTerms(n);
+        double sum_e = sumTermsAboveE(e);
+
+        // Вывод результатов
+        cout << "Сумма первых " << n << " членов: " << sum_n << endl;
+        cout << "Сумма членов с |a_k| >= " << e << ": " << sum_e << endl;
+
+    } catch (const exception& e) {
+        cerr << "Ошибка: " << e.what() << endl;
+        return 1;
     }
 
-    // Блок ввода e с проверкой
-    cout << "Введите минимальное абсолютное значение (e > 0): ";
-    while (!(cin >> e) || e <= 0) {  // Проверка корректности ввода
-        cin.clear();  // Сброс флагов ошибок
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // Очистка буфера
-        cout << "Ошибка! Введите число > 0: ";  // Сообщение об ошибке
+    return 0;
+}
+
+// Реализации функций
+unsigned long long factorial(int n) {
+    if (n < 0) {
+        throw invalid_argument("Факториал отрицательного числа не определен");
     }
 
-    // Вывод результатов вычислений
-    cout << "Сумма первых " << n << " членов: " << sum_first_n_terms(n) << endl;
-    cout << "Сумма членов с |a_k| >= " << e << ": " << sum_terms_above_e(e) << endl;
+    unsigned long long result = 1;
+    for (int i = 2; i <= n; ++i) {
+        result *= i;
+    }
+    return result;
+}
 
-    return 0;  // Успешное завершение программы
+double calculateSequenceTerm(int k) {
+    double numerator = pow(-1, k);
+    unsigned long long denominator = factorial(k + 2) * factorial(k + 3);
+    return numerator / denominator;
+}
+
+double sumFirstNTerms(int n) {
+    if (n < 0) {
+        throw invalid_argument("n должно быть >= 0");
+    }
+
+    double sum = 0.0;
+    for (int k = 0; k <= n; ++k) {
+        sum += calculateSequenceTerm(k);
+    }
+    return sum;
+}
+
+double sumTermsAboveE(double e) {
+    if (e <= 0) {
+        throw invalid_argument("e должно быть > 0");
+    }
+
+    double sum = 0.0;
+    int k = 0;
+    while (true) {
+        double term = calculateSequenceTerm(k);
+        if (abs(term) < e) break;
+        sum += term;
+        k++;
+        
+        // Защита от слишком большого количества итераций
+        if (k > 1000) {
+            cerr << "Предупреждение: достигнуто максимальное количество итераций" << endl;
+            break;
+        }
+    }
+    return sum;
+}
+
+int getNonNegativeInteger(const string& prompt) {
+    int value;
+    cout << prompt;
+    
+    if (!(cin >> value) || value < 0) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        throw runtime_error("Неверный ввод. Требуется целое число >= 0.");
+    }
+    
+    return value;
+}
+
+double getPositiveDouble(const string& prompt) {
+    double value;
+    cout << prompt;
+    
+    if (!(cin >> value) || value <= 0) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        throw runtime_error("Неверный ввод. Требуется число > 0.");
+    }
+    
+    return value;
 }
 
