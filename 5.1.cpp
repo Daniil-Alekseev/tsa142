@@ -11,21 +11,21 @@ using namespace std;
 * @param k Номер члена последовательности (k >= 0)
 * @return Значение k-го члена
 */
-double calculateTerm(int k);
+double calculateTerm(const int k);
 
 /**
 * @brief Вычисляет сумму первых n членов последовательности
 * @param n Количество членов (должно быть >= 0)
 * @return Сумма членов
 */
-double sumFirstNTerms(int n);
+double sumFirstNTerms(const int n);
 
 /**
 * @brief Вычисляет сумму членов последовательности с |член| >= e
 * @param e Минимальное абсолютное значение (должно быть > 0)
 * @return Сумма подходящих членов
 */
-double sumTermsAboveEpsilon(double e);
+double sumTermsAboveEpsilon(const double e);
 
 /**
 * @brief Получает неотрицательное целое число от пользователя
@@ -44,12 +44,12 @@ double getPositiveDouble(const string& prompt);
 int main() {
     try {
         // Ввод параметров
-        int n = getNonNegativeInteger("Введите количество членов последовательности (n >= 0): ");
-        double e = getPositiveDouble("Введите минимальное абсолютное значение (e > 0): ");
+        const int n = getNonNegativeInteger("Введите количество членов последовательности (n >= 0): ");
+        const double e = getPositiveDouble("Введите минимальное абсолютное значение (e > 0): ");
 
         // Вычисление сумм
-        double sum_n = sumFirstNTerms(n);
-        double sum_e = sumTermsAboveEpsilon(e);
+        const double sum_n = sumFirstNTerms(n);
+        const double sum_e = sumTermsAboveEpsilon(e);
 
         // Вывод результатов
         cout << "Сумма первых " << n << " членов последовательности: " 
@@ -66,7 +66,7 @@ int main() {
 }
 
 // Реализации функций
-double calculateTerm(int k) {
+double calculateTerm(const int k) {
     static double prev_term = 1.0/12.0; // a₀
 
     if (k == 0) {
@@ -78,7 +78,7 @@ double calculateTerm(int k) {
     return prev_term;
 }
 
-double sumFirstNTerms(int n) {
+double sumFirstNTerms(const int n) {
     double sum = 0.0;
     for (int k = 0; k < n; ++k) {
         sum += calculateTerm(k);
@@ -86,7 +86,7 @@ double sumFirstNTerms(int n) {
     return sum;
 }
 
-double sumTermsAboveEpsilon(double e) {
+double sumTermsAboveEpsilon(const double e) {
     if (e <= 0) {
         throw invalid_argument("e должно быть > 0");
     }
@@ -101,7 +101,7 @@ double sumTermsAboveEpsilon(double e) {
             sum += term;
         }
         k++;
-    } while (abs(term) >= e || k < 1000); // Добавлено ограничение на максимальное количество итераций
+    } while (abs(term) >= e || k < 1000); // Ограничение на максимальное количество итераций
 
     return sum;
 }
