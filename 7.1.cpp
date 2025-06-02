@@ -2,202 +2,224 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+#include <limits>
+#include <vector>
 
 using namespace std;
 
+// Перечисление для выбора способа заполнения
+enum class FillMethod {
+    RANDOM = 1,
+    MANUAL = 2
+};
+
 // Прототипы функций
-/**
-* @brief Выделяет память для двумерного массива
-* @param rows Количество строк
-* @param cols Количество столбцов
-* @return Указатель на созданный массив
-*/
-int** createMatrix(int rows, int cols);
-
-/**
-* @brief Освобождает память двумерного массива
-* @param matrix Указатель на массив
-* @param rows Количество строк
-*/
-void freeMatrix(int** matrix, int rows);
-
-/**
-* @brief Заполняет массив случайными числами
-* @param matrix Указатель на массив
-* @param rows Количество строк
-* @param cols Количество столбцов
-* @param min Минимальное значение
-* @param max Максимальное значение
-*/
-void fillRandom(int** matrix, int rows, int cols, int min, int max);
-
-/**
-* @brief Заполняет массив вручную
-* @param matrix Указатель на массив
-* @param rows Количество строк
-* @param cols Количество столбцов
-*/
-void fillManual(int** matrix, int rows, int cols);
-
-/**
-* @brief Выводит массив на экран
-* @param matrix Указатель на массив
-* @param rows Количество строк
-* @param cols Количество столбцов
-*/
-void printMatrix(int** matrix, int rows, int cols);
-
-/**
-* @brief Заменяет максимальный по модулю элемент каждой строки на противоположный
-* @param matrix Указатель на массив
-* @param rows Количество строк
-* @param cols Количество столбцов
-*/
-void replaceMaxAbs(int** matrix, int rows, int cols);
-
-/**
-* @brief Вставляет копию первой строки после каждой четной строки
-* @param matrix Указатель на массив (будет изменен)
-* @param rows Указатель на количество строк (будет изменено)
-* @param cols Количество столбцов
-* @return Новая матрица с вставленными строками
-*/
-int** insertFirstAfterEven(int** matrix, int* rows, int cols);
+size_t getPositiveSize(const string& prompt);
+int getIntegerInput(const string& prompt);
+int getIntegerInRange(const string& prompt, int min, int max);
+int** createMatrix(size_t rows, size_t cols);
+bool freeMatrix(int** matrix, size_t rows);
+bool fillRandom(int** matrix, size_t rows, size_t cols, int min, int max);
+bool fillManual(int** matrix, size_t rows, size_t cols);
+bool printMatrix(const int* const* matrix, size_t rows, size_t cols);
+bool replaceMaxAbs(int** matrix, size_t rows, size_t cols);
+int** insertFirstAfterEven(const int* const* matrix, size_t& rows, size_t cols);
 
 int main() {
-    srand(time(0));
+    srand(static_cast<unsigned>(time(nullptr)));
 
-    int n, m;
-    cout << "Введите количество строк (n > 0): ";
-    cin >> n;
-    cout << "Введите количество столбцов (m > 0): ";
-    cin >> m;
+    try {
+        // Получаем размеры матрицы с проверкой ввода
+        size_t n = getPositiveSize("Введите количество строк (n > 0): ");
+        size_t m = getPositiveSize("Введите количество столбцов (m > 0): ");
 
-    if (n <= 0 || m <= 0) {
-        cout << "Ошибка: размеры матрицы должны быть положительными." << endl;
+        // Создаем матрицу
+        int** matrix = createMatrix(n, m);
+
+        // Выбираем способ заполнения
+        cout << "Выберите способ заполнения:\n"
+             << "1 - Случайные числа\n"
+             << "2 - Вручную\n";
+        int choice = getIntegerInRange("Ваш выбор: ", 1, 2);
+
+        switch (static_cast<FillMethod>(choice)) {
+            case FillMethod::RANDOM: {
+                int min = getIntegerInput("Введите минимальное значение: ");
+                int max = getIntegerInput("Введите максимальное значение: ");
+                if (!fillRandom(matrix, n, m, min, max)) {
+                    throw runtime_error("Ошибка при заполнении матрицы случайными числами");
+                }
+                break;
+            }
+            case FillMethod::MANUAL:
+                if (!fillManual(matrix, n, m)) {
+                    throw runtime_error("Ошибка при ручном заполнении матрицы");
+                }
+                break;
+        }
+
+        cout << "Исходная матрица:" << endl;
+        if (!printMatrix(matrix, n, m)) {
+            throw runtime_error("Ошибка при выводе матрицы");
+        }
+
+        // Первое задание - замена максимальных по модулю элементов
+        if (!replaceMaxAbs(matrix, n, m)) {
+            throw runtime_error("Ошибка при замене максимальных по модулю элементов");
+        }
+        cout << "После замены максимальных по модулю элементов:" << endl;
+        if (!printMatrix(matrix, n, m)) {
+            throw runtime_error("Ошибка при выводе матрицы");
+        }
+
+        // Второе задание - вставка первой строки после четных
+        size_t newRows = n;
+        int** newMatrix = insertFirstAfterEven(matrix, newRows, m);
+        cout << "После вставки первой строки после четных:" << endl;
+        if (!printMatrix(newMatrix, newRows, m)) {
+            throw runtime_error("Ошибка при выводе матрицы");
+        }
+
+        // Освобождаем память
+        if (!freeMatrix(matrix, n) || !freeMatrix(newMatrix, newRows)) {
+            throw runtime_error("Ошибка при освобождении памяти");
+        }
+
+    } catch (const exception& e) {
+        cerr << "Ошибка: " << e.what() << endl;
         return 1;
     }
-
-    // Создание матрицы
-    int** matrix = createMatrix(n, m);
-
-    int choice;
-    cout << "Выберите способ заполнения (1 - случайные, 2 - вручную): ";
-    cin >> choice;
-
-    if (choice == 1) {
-        int min, max;
-        cout << "Введите минимальное значение: ";
-        cin >> min;
-        cout << "Введите максимальное значение: ";
-        cin >> max;
-        fillRandom(matrix, n, m, min, max);
-    } 
-    else if (choice == 2) {
-        fillManual(matrix, n, m);
-    } 
-    else {
-        cout << "Ошибка: неверный выбор." << endl;
-        freeMatrix(matrix, n);
-        return 1;
-    }
-
-    cout << "Исходная матрица:" << endl;
-    printMatrix(matrix, n, m);
-
-    // Первая задача
-    replaceMaxAbs(matrix, n, m);
-    cout << "После замены максимальных по модулю элементов:" << endl;
-    printMatrix(matrix, n, m);
-
-    // Вторая задача
-    int newRows = n;
-    int** newMatrix = insertFirstAfterEven(matrix, &newRows, m);
-    cout << "После вставки первой строки после четных:" << endl;
-    printMatrix(newMatrix, newRows, m);
-
-    // Освобождение памяти
-    freeMatrix(matrix, n);
-    freeMatrix(newMatrix, newRows);
 
     return 0;
 }
 
-// Реализации функций
-int** createMatrix(int rows, int cols) {
+// Реализация функций
+size_t getPositiveSize(const string& prompt) {
+    int value;
+    while (true) {
+        cout << prompt;
+        if (cin >> value && value > 0) {
+            return static_cast<size_t>(value);
+        }
+        cout << "Ошибка: введите положительное число.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
+
+int getIntegerInput(const string& prompt) {
+    int value;
+    while (true) {
+        cout << prompt;
+        if (cin >> value) {
+            return value;
+        }
+        cout << "Ошибка: введите целое число.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
+
+int getIntegerInRange(const string& prompt, int min, int max) {
+    while (true) {
+        int value = getIntegerInput(prompt);
+        if (value >= min && value <= max) {
+            return value;
+        }
+        cout << "Ошибка: введите число от " << min << " до " << max << ".\n";
+    }
+}
+
+int** createMatrix(size_t rows, size_t cols) {
     int** matrix = new int*[rows];
-    for (int i = 0; i < rows; ++i) {
+    for (size_t i = 0; i < rows; ++i) {
         matrix[i] = new int[cols];
     }
     return matrix;
 }
 
-void freeMatrix(int** matrix, int rows) {
-    for (int i = 0; i < rows; ++i) {
+bool freeMatrix(int** matrix, size_t rows) {
+    if (matrix == nullptr) return false;
+    
+    for (size_t i = 0; i < rows; ++i) {
         delete[] matrix[i];
     }
     delete[] matrix;
+    return true;
 }
 
-void fillRandom(int** matrix, int rows, int cols, int min, int max) {
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
+bool fillRandom(int** matrix, size_t rows, size_t cols, int min, int max) {
+    if (matrix == nullptr || min > max) return false;
+    
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
             matrix[i][j] = rand() % (max - min + 1) + min;
         }
     }
+    return true;
 }
 
-void fillManual(int** matrix, int rows, int cols) {
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            cout << "Введите элемент [" << i << "][" << j << "]: ";
-            cin >> matrix[i][j];
+bool fillManual(int** matrix, size_t rows, size_t cols) {
+    if (matrix == nullptr) return false;
+    
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
+            matrix[i][j] = getIntegerInput("Введите элемент [" + to_string(i) + "][" + to_string(j) + "]: ");
         }
     }
+    return true;
 }
 
-void printMatrix(int** matrix, int rows, int cols) {
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
+bool printMatrix(const int* const* matrix, size_t rows, size_t cols) {
+    if (matrix == nullptr) return false;
+    
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
             cout << matrix[i][j] << "\t";
         }
         cout << endl;
     }
+    return true;
 }
 
-void replaceMaxAbs(int** matrix, int rows, int cols) {
-    for (int i = 0; i < rows; ++i) {
-        int maxAbsIndex = 0;
-        for (int j = 1; j < cols; ++j) {
+bool replaceMaxAbs(int** matrix, size_t rows, size_t cols) {
+    if (matrix == nullptr) return false;
+    
+    for (size_t i = 0; i < rows; ++i) {
+        size_t maxAbsIndex = 0;
+        for (size_t j = 1; j < cols; ++j) {
             if (abs(matrix[i][j]) > abs(matrix[i][maxAbsIndex])) {
                 maxAbsIndex = j;
             }
         }
         matrix[i][maxAbsIndex] = -matrix[i][maxAbsIndex];
     }
+    return true;
 }
 
-int** insertFirstAfterEven(int** matrix, int* rows, int cols) {
-    int newRows = *rows + (*rows + 1) / 2;
-    int** newMatrix = createMatrix(newRows, cols);
+int** insertFirstAfterEven(const int* const* matrix, size_t& rows, size_t cols) {
+    if (matrix == nullptr) return nullptr;
     
-    int newRow = 0;
-    for (int i = 0; i < *rows; ++i) {
+    size_t newRows = rows + (rows + 1) / 2;
+    int** newMatrix = createMatrix(newRows, cols);
+
+    size_t newRow = 0;
+    for (size_t i = 0; i < rows; ++i) {
         // Копируем текущую строку
-        for (int j = 0; j < cols; ++j) {
+        for (size_t j = 0; j < cols; ++j) {
             newMatrix[newRow][j] = matrix[i][j];
         }
         newRow++;
-        
-        // Если строка четная, добавляем копию первой строки
+
+        // Если строка четная, вставляем копию первой строки
         if (i % 2 == 0) {
-            for (int j = 0; j < cols; ++j) {
+            for (size_t j = 0; j < cols; ++j) {
                 newMatrix[newRow][j] = matrix[0][j];
             }
             newRow++;
         }
     }
-    
-    *rows = newRows;
+
+    rows = newRows;
     return newMatrix;
 }
