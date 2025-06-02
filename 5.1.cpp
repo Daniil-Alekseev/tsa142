@@ -41,26 +41,26 @@ int getNonNegativeInteger(const string& prompt);
 */
 double getPositiveDouble(const string& prompt);
 
+/**
+* @brief Основная функция программы
+* @details Запрашивает у пользователя параметры n и e, вычисляет суммы последовательности
+* и выводит результаты на экран
+* @return 0 при успешном выполнении
+*/
 int main() {
-    try {
-        // Ввод параметров
-        const int n = getNonNegativeInteger("Введите количество членов последовательности (n >= 0): ");
-        const double e = getPositiveDouble("Введите минимальное абсолютное значение (e > 0): ");
+    // Ввод параметров
+    const int n = getNonNegativeInteger("Введите количество членов последовательности (n >= 0): ");
+    const double e = getPositiveDouble("Введите минимальное абсолютное значение (e > 0): ");
 
-        // Вычисление сумм
-        const double sum_n = sumFirstNTerms(n);
-        const double sum_e = sumTermsAboveEpsilon(e);
+    // Вычисление сумм
+    const double sum_n = sumFirstNTerms(n);
+    const double sum_e = sumTermsAboveEpsilon(e);
 
-        // Вывод результатов
-        cout << "Сумма первых " << n << " членов последовательности: " 
-             << sum_n << endl;
-        cout << "Сумма членов последовательности с |член| >= " << e 
-             << ": " << sum_e << endl;
-
-    } catch (const exception& e) {
-        cerr << "Ошибка: " << e.what() << endl;
-        return 1;
-    }
+    // Вывод результатов
+    cout << "Сумма первых " << n << " членов последовательности: " 
+         << sum_n << endl;
+    cout << "Сумма членов последовательности с |член| >= " << e 
+         << ": " << sum_e << endl;
 
     return 0;
 }
@@ -95,14 +95,15 @@ double sumTermsAboveEpsilon(const double e) {
     double term;
     int k = 0;
 
-    do {
+    while (true) {
         term = calculateTerm(k);
-        if (abs(term) >= e) {
-            sum += term;
+        if (abs(term) < e) {
+            break;
         }
+        sum += term;
         k++;
-    } while (abs(term) >= e || k < 1000); // Ограничение на максимальное количество итераций
-
+    }
+    
     return sum;
 }
 
