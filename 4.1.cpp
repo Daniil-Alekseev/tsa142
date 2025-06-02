@@ -57,9 +57,9 @@ int main() {
         for (double x = start; x <= end + epsilon; x += step) {
             try {
                 double y = calculateFunction(x);
-                cout << "x = " << x << ", y = " << y << endl;
+                cout << "x = " << setw(6) << x << ", y = " << setw(8) << y << endl;
             } catch (const domain_error& e) {
-                cout << "x = " << x << " : " << e.what() << endl;
+                cout << "x = " << setw(6) << x << " : " << e.what() << endl;
             }
         }
     } catch (const exception& e) {
@@ -92,7 +92,7 @@ double getPositiveInput(const string& prompt) {
 
 double calculateFunction(double x) {
     if (x < 0) {
-        throw domain_error("Ошибка — x отрицательный.");
+        throw domain_error("не принадлежит ООФ");
     }
     double sqrt_x = sqrt(x);
     return 3 * sin(sqrt_x) + 0.39 * x - 3.8;
