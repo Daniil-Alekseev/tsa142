@@ -1,84 +1,133 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 using namespace std;
 
-// Функция для вычисления факториала числа (итеративный метод)
-// Параметры:
-//   num - число, для которого вычисляется факториал
-// Возвращает:
-//   Факториал числа num
-unsigned long long factorial(int num) {
-    if (num < 0) return 0; // Факториал отрицательного числа не определен
-    unsigned long long result = 1;
-    for (int i = 1; i <= num; ++i) {
-        result *= i; // Умножаем результат на текущее число
-    }
-    return result;
-}
+// Прототипы функций
+/**
+* @brief Вычисляет текущий член последовательности
+* @param k Номер члена последовательности (k >= 0)
+* @return Значение k-го члена
+*/
+double calculateTerm(const int k);
 
-// Функция для вычисления суммы первых n членов последовательности (вариант 1)
-// Параметры:
-//   n - количество членов последовательности для суммирования
-// Возвращает:
-//   Сумму первых n членов последовательности
-double sum_first_n_terms(int n) {
-    double sum = 0.0;
-    for (int k = 0; k <= n; ++k) {
-        double numerator = pow(-1, k); // Числитель: (-1)^k
-        double denominator = factorial(k + 2) * factorial(k + 3); // Знаменатель: (k+2)! * (k+3)!
-        sum += numerator / denominator; // Добавляем текущий член к сумме
-    }
-    return sum;
-}
+/**
+* @brief Вычисляет сумму первых n членов последовательности
+* @param n Количество членов (должно быть >= 0)
+* @return Сумма членов
+*/
+double sumFirstNTerms(const int n);
 
-// Функция для вычисления суммы членов последовательности, по модулю не меньших e (вариант 1)
-// Параметры:
-//   e - минимальное абсолютное значение члена последовательности для включения в сумму
-// Возвращает:
-//   Сумму членов последовательности, удовлетворяющих условию |член| >= e
-double sum_terms_above_epsilon(double e) {
-    double sum = 0.0;
-    int k = 0;
-    while (true) {
-        double numerator = pow(-1, k); // Числитель: (-1)^k
-        double denominator = factorial(k + 2) * factorial(k + 3); // Знаменатель: (k+2)! * (k+3)!
-        double term = numerator / denominator; // Текущий член последовательности
-        if (abs(term) < e) break; // Если |член| < e, прерываем цикл
-        sum += term; // Добавляем текущий член к сумме
-        k++; // Переходим к следующему члену
-    }
-    return sum;
-}
+/**
+* @brief Вычисляет сумму членов последовательности с |член| >= e
+* @param e Минимальное абсолютное значение (должно быть > 0)
+* @return Сумма подходящих членов
+*/
+double sumTermsAboveEpsilon(const double e);
+
+/**
+* @brief Получает неотрицательное целое число от пользователя
+* @param prompt Сообщение для пользователя
+* @return Введенное число
+*/
+int getNonNegativeInteger(const string& prompt);
+
+/**
+* @brief Получает положительное число от пользователя
+* @param prompt Сообщение для пользователя
+* @return Введенное число
+*/
+double getPositiveDouble(const string& prompt);
 
 int main() {
-    int n;
-    double e;
+    try {
+        // Ввод параметров
+        const int n = getNonNegativeInteger("Введите количество членов последовательности (n >= 0): ");
+        const double e = getPositiveDouble("Введите минимальное абсолютное значение (e > 0): ");
 
-    // Запрос ввода n с проверкой
-    cout << "Введите количество членов последовательности n (целое число >= 0): ";
-    while (!(cin >> n) || n < 0) {
-        cin.clear(); // Сброс флага ошибки
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера ввода
-        cout << "Ошибка ввода. Пожалуйста, введите целое число >= 0: ";
+        // Вычисление сумм
+        const double sum_n = sumFirstNTerms(n);
+        const double sum_e = sumTermsAboveEpsilon(e);
+
+        // Вывод результатов
+        cout << "Сумма первых " << n << " членов последовательности: " 
+             << sum_n << endl;
+        cout << "Сумма членов последовательности с |член| >= " << e 
+             << ": " << sum_e << endl;
+
+    } catch (const exception& e) {
+        cerr << "Ошибка: " << e.what() << endl;
+        return 1;
     }
-
-    // Запрос ввода e с проверкой
-    cout << "Введите минимальное абсолютное значение e (число > 0): ";
-    while (!(cin >> e) || e <= 0) {
-        cin.clear(); // Сброс флага ошибки
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера ввода
-        cout << "Ошибка ввода. Пожалуйста, введите число > 0: ";
-    }
-
-    // Вычисление и вывод суммы первых n членов
-    double sum_n = sum_first_n_terms(n);
-    cout << "Сумма первых " << n << " членов последовательности: " << sum_n << endl;
-
-    // Вычисление и вывод суммы членов, по модулю не меньших e
-    double sum_epsilon = sum_terms_above_epsilon(e);
-    cout << "Сумма членов последовательности с |член| >= " << e << ": " << sum_epsilon << endl;
 
     return 0;
+}
+
+// Реализации функций
+double calculateTerm(const int k) {
+    static double prev_term = 1.0/12.0; // a₀
+
+    if (k == 0) {
+        return prev_term;
+    }
+
+    // Рекуррентное соотношение: aₖ = -aₖ₋₁ * k/((k+2)(k+3))
+    prev_term *= -1.0 * k / ((k + 2) * (k + 3));
+    return prev_term;
+}
+
+double sumFirstNTerms(const int n) {
+    double sum = 0.0;
+    for (int k = 0; k < n; ++k) {
+        sum += calculateTerm(k);
+    }
+    return sum;
+}
+
+double sumTermsAboveEpsilon(const double e) {
+    if (e <= 0) {
+        throw invalid_argument("e должно быть > 0");
+    }
+
+    double sum = 0.0;
+    double term;
+    int k = 0;
+
+    do {
+        term = calculateTerm(k);
+        if (abs(term) >= e) {
+            sum += term;
+        }
+        k++;
+    } while (abs(term) >= e || k < 1000); // Ограничение на максимальное количество итераций
+
+    return sum;
+}
+
+int getNonNegativeInteger(const string& prompt) {
+    int value = 0;
+    cout << prompt;
+
+    if (!(cin >> value) || value < 0) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        throw runtime_error("Неверный ввод. Требуется целое число >= 0.");
+    }
+
+    return value;
+}
+
+double getPositiveDouble(const string& prompt) {
+    double value = 0.0;
+    cout << prompt;
+
+    if (!(cin >> value) || value <= 0) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        throw runtime_error("Неверный ввод. Требуется число > 0.");
+    }
+
+    return value;
 }
