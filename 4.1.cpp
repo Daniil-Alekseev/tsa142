@@ -7,49 +7,29 @@
 using namespace std;
 
 // Прототипы функций
-/**
-* @brief Получает числовое значение от пользователя
-* @param prompt Сообщение для пользователя
-* @return Введенное значение
-*/
 double getInput(const string& prompt);
-
-/**
-* @brief Получает положительное числовое значение от пользователя
-* @param prompt Сообщение для пользователя
-* @return Введенное положительное значение
-*/
 double getPositiveInput(const string& prompt);
-
-/**
-* @brief Вычисляет значение функции y = 3*sin(√x) + 0.39x - 3.8
-* @param x Аргумент функции
-* @return Значение функции
-*/
 double calculateFunction(double x);
 
-// Главная функция
-/**
-* @brief Основная функция программы
-* @details Вычисляет значения функции на заданном интервале с указанным шагом
-* @return 0 при успешном выполнении, 1 при ошибке ввода
-*/
 int main() {
+    // Инициализация переменных
+    double start = 0.0;
+    double end = 0.0;
+    double step = 0.0;
+
     // Ввод параметров
-    double start, end, step;
-    
     cout << "Введите начало интервала (start): ";
     if (!(cin >> start)) {
         cerr << "Ошибка ввода: требуется числовое значение." << endl;
         return 1;
     }
-    
+
     cout << "Введите конец интервала (end): ";
     if (!(cin >> end)) {
         cerr << "Ошибка ввода: требуется числовое значение." << endl;
         return 1;
     }
-    
+
     cout << "Введите шаг (step): ";
     if (!(cin >> step) || step <= 0) {
         cerr << "Ошибка: значение должно быть положительным." << endl;
@@ -72,17 +52,16 @@ int main() {
             cout << "x = " << setw(6) << x << " : не принадлежит ООФ" << endl;
             continue;
         }
-        
-        double y = 3 * sin(sqrt(x)) + 0.39 * x - 3.8;
+
+        double y = calculateFunction(x);
         cout << "x = " << setw(6) << x << ", y = " << setw(8) << y << endl;
     }
 
     return 0;
 }
 
-// Реализации функций
 double getInput(const string& prompt) {
-    double value;
+    double value = 0.0;
     cout << prompt;
     if (!(cin >> value)) {
         cin.clear();
@@ -107,6 +86,5 @@ double calculateFunction(double x) {
         cerr << "не принадлежит ООФ" << endl;
         exit(1);
     }
-    double sqrt_x = sqrt(x);
-    return 3 * sin(sqrt_x) + 0.39 * x - 3.8;
+    return 3 * sin(sqrt(x)) + 0.39 * x - 3.8;
 }
