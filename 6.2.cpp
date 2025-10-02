@@ -1,163 +1,288 @@
 #include <iostream>
-#include <cmath>
-#include <limits>
-#include <stdexcept>
-
+#include <ctime>
+#include <algorithm>
+#include <climits>
 using namespace std;
 
-// Прототипы функций
 /**
-* @brief Вычисляет факториал числа
-* @param n Неотрицательное целое число
-* @return Факториал числа n
-* @throws invalid_argument если n отрицательное
-*/
-unsigned long long factorial(int n);
-
-/**
-* @brief Вычисляет член последовательности
-* @param k Индекс члена последовательности
-* @return Значение k-го члена последовательности
-*/
-double calculateSequenceTerm(int k);
+ * @brief оператор выбора способа заполнения массива
+ * @param RANDOM = 0 автоматическое заполнение
+ * @param MANUALLY = 1 ручное заполнение
+ */
+enum SELECT
+{
+  RANDOM = 0,
+  MANUALLY = 1
+};
 
 /**
-* @brief Вычисляет сумму первых n членов последовательности
-* @param n Количество членов (должно быть >= 0)
-* @return Сумма членов
-* @throws invalid_argument если n отрицательное
-*/
-double sumFirstNTerms(int n);
+ * @brief Считывает значения с клавиатуры с проверкой ввода
+ * @return Возвращает значение, если оно правильное, иначе завершает программу
+ */
+double get_value();
 
 /**
-* @brief Вычисляет сумму членов последовательности с |член| >= e
-* @param e Минимальное абсолютное значение (должно быть > 0)
-* @return Сумма подходящих членов
-* @throws invalid_argument если e не положительное
-*/
-double sumTermsAboveE(double e);
+ * @brief Возвращает размер массива
+ * @return Размер массива
+ */
+size_t get_size_arr();
 
 /**
-* @brief Безопасно получает целое число >= 0 от пользователя
-* @param prompt Приглашение для ввода
-* @return Введенное число
-* @throws runtime_error при ошибке ввода
-*/
-int getNonNegativeInteger(const string& prompt);
+ * @brief Проверяет размер массива
+ * @param n Размер массива
+ */
+void check_arr_n(const int n);
 
 /**
-* @brief Безопасно получает положительное число от пользователя
-* @param prompt Приглашение для ввода
-* @return Введенное число
-* @throws runtime_error при ошибке ввода
-*/
-double getPositiveDouble(const string& prompt);
+ * @brief Проверяет диапазон
+ * @param min Минимальное значение диапазона значений элементов массива
+ * @param max Максимальное значение диапазона значений элементов массива
+ */
+void check_range(const int min, const int max);
 
 /**
-* @brief Главная функция программы
-* @return 0 при успешном выполнении
-*/
-int main() {
-    try {
-        // Ввод данных
-        int n = getNonNegativeInteger(
-            "Введите количество членов последовательности (n >= 0): ");
-        
-        double e = getPositiveDouble(
-            "Введите минимальное абсолютное значение (e > 0): ");
+ * @brief Заполнение массива автоматически случайными числами в заданном диапазоне
+ * @param arr Массив
+ * @param n Размер массива
+ * @param min Минимальное значение диапазона значений элементов массива
+ * @param max Максимальное значение диапазона значений элементов массива
+ */
+void fill_arr_random(int *arr, const int n, const int min, const int max);
 
-        // Вычисления
-        double sum_n = sumFirstNTerms(n);
-        double sum_e = sumTermsAboveE(e);
+/**
+ * @brief Заполнение массива вручную
+ * @param arr Массив
+ * @param n -Размер массива
+ * @param min Минимальное значение диапазона значений элементов массива
+ * @param max Максимальное значение диапазона значений элементов массива
+ */
+void fill_arr(int *arr, const int n, const int min, const int max);
 
-        // Вывод результатов
-        cout << "Сумма первых " << n << " членов: " << sum_n << endl;
-        cout << "Сумма членов с |a_k| >= " << e << ": " << sum_e << endl;
+/**
+ * @brief Выводит массив на экран
+ * @param arr Массив
+ * @param n Размер массива
+ */
+void print_arr(const int *arr, const int n);
 
-    } catch (const exception& e) {
-        cerr << "Ошибка: " << e.what() << endl;
-        return 1;
-    }
+/**
+ * @brief Выводит сумму элементов, имеющих нечётное значение
+ * @param arr Указатель на массив целых чисел
+ * @param n Размер массива
+ */
+void print_sum_of_odd_elements(const int *arr, const int n);
 
+/**
+ * @brief Выводит индексы элементов, значения которых больше заданного числа А
+ * @param arr Указатель на исходный массив
+ * @param n Размер массива
+ * @param a Заданное число для сравнения
+ */
+void print_indices_of_elements_greater_than_A(const int *arr, const int n, const int a);
+
+/**
+ * @brief Заменяет второй элемент массива на максимальный среди отрицательных
+ * @param arr Указатель на исходный массив
+ * @param n Размер массива
+ */
+void print_array_with_second_element_replaced(const int *arr, const int n);
+
+/**
+ * @brief Точка входа в программу
+ * @return Возвращает 0, если программа выполнена корректно
+ */
+int main()
+{
+  setlocale(LC_ALL, "Russian");
+  int n = get_size_arr();
+  int *arr = new int[n];
+
+  cout << "Введите минимальное и максимальное значение интервала: ";
+  int minValue = get_value();
+  int maxValue = get_value();
+  check_range(minValue, maxValue);
+
+  cout << "Введите выбор для заполнения массива: " << endl
+       << RANDOM << " Для случайного заполнения" << endl
+       << MANUALLY << " Для ручного заполнения" << endl;
+
+  int choice = get_value();
+
+  switch ((enum SELECT)choice)
+  {
+  case RANDOM:
+    fill_arr_random(arr, n, minValue, maxValue);
+    break;
+  case MANUALLY:
+    fill_arr(arr, n, minValue, maxValue);
+    break;
+  default:
+    cout << "Ваш выбор неверен" << endl;
+    delete[] arr;
     return 0;
+  }
+
+  cout << "Элементы массива:" << endl;
+  print_arr(arr, n);
+
+  print_sum_of_odd_elements(arr, n);
+  cout << "Введите число A: ";
+  int a = get_value();
+  cout << "Индексы элементов, значения которых больше " << a << ":" << endl;
+  print_indices_of_elements_greater_than_A(arr, n, a);
+  print_array_with_second_element_replaced(arr, n);
+
+  delete[] arr;
+
+  return 0;
 }
 
-// Реализации функций
-unsigned long long factorial(int n) {
-    if (n < 0) {
-        throw invalid_argument("Факториал отрицательного числа не определен");
-    }
-
-    unsigned long long result = 1;
-    for (int i = 2; i <= n; ++i) {
-        result *= i;
-    }
-    return result;
+double get_value()
+{
+  double value = 0;
+  cin >> value;
+  if (cin.fail())
+  {
+    cout << "Некорректное значение" << endl;
+    abort();
+  }
+  return value;
 }
 
-double calculateSequenceTerm(int k) {
-    double numerator = pow(-1, k);
-    unsigned long long denominator = factorial(k + 2) * factorial(k + 3);
-    return numerator / denominator;
+size_t get_size_arr()
+{
+  cout << "Введите размер массива: ";
+  int n = get_value();
+  check_arr_n(n);
+  return (size_t)n;
 }
 
-double sumFirstNTerms(int n) {
-    if (n < 0) {
-        throw invalid_argument("n должно быть >= 0");
-    }
-
-    double sum = 0.0;
-    for (int k = 0; k <= n; ++k) {
-        sum += calculateSequenceTerm(k);
-    }
-    return sum;
+void check_arr_n(const int n)
+{
+  if (n <= 0)
+  {
+    cout << "Неправильный размер массива" << endl;
+    abort();
+  }
 }
 
-double sumTermsAboveE(double e) {
-    if (e <= 0) {
-        throw invalid_argument("e должно быть > 0");
-    }
-
-    double sum = 0.0;
-    int k = 0;
-    while (true) {
-        double term = calculateSequenceTerm(k);
-        if (abs(term) < e) break;
-        sum += term;
-        k++;
-        
-        // Защита от слишком большого количества итераций
-        if (k > 1000) {
-            cerr << "Предупреждение: достигнуто максимальное количество итераций" << endl;
-            break;
-        }
-    }
-    return sum;
+void check_range(const int min, const int max)
+{
+  if (min > max)
+  {
+    cout << "Введен неправильный интервал" << endl;
+    abort();
+  }
 }
 
-int getNonNegativeInteger(const string& prompt) {
-    int value;
-    cout << prompt;
+void fill_arr_random(int *arr, const int n, const int min, const int max)
+{
+  srand(time(0));
+  for (size_t i = 0; i < n; i++)
+  {
+    arr[i] = rand() % (max - min) + min;
+  }
+}
+
+void fill_arr(int *arr, const int n, const int min, const int max)
+{
+  for (size_t i = 0; i < n;)
+  {
+    cout << "Введите значение для arr[" << i << "] (диапазон [" << min << ".." << max << "]): ";
+    int value = get_value();
+
+    if (value >= min && value <= max)
+    {
+      arr[i] = value;
+      i++;
+    }
+    else
+    {
+      abort();
+    }
+  }
+}
+
+void print_arr(const int *arr, const int n)
+{
+  for (size_t i = 0; i < n; i++)
+  {
+    cout << "arr[" << i << "] = " << arr[i] << endl;
+  }
+}
+
+void print_sum_of_odd_elements(const int *arr, const int n)
+{
+  double sum = 0;
+  bool found = false;
+
+  for (size_t i = 0; i < n; i++)
+  {
+    if (arr[i] % 2 != 0)
+    {
+      sum += arr[i];
+      found = true;
+    }
+  }
+
+  if (!found)
+  {
+    cout << "В массиве нет элементов с нечётными значениями." << endl;
+  }
+  else
+  {
+    cout << "Сумма элементов с нечётными значениями: " << sum << endl;
+  }
+}
+
+void print_indices_of_elements_greater_than_A(const int *arr, const int n, const int a)
+{
+  bool found = false;
+
+  for (size_t i = 0; i < n; i++)
+  {
+    if (arr[i] > a)
+    {
+      cout << "arr[" << i << "] = " << arr[i] << endl;
+      found = true;
+    }
+  }
+
+  if (!found)
+  {
+    cout << "В массиве нет элементов, больших " << a << "." << endl;
+  }
+}
+
+void print_array_with_second_element_replaced(const int *arr, const int n)
+{
+  int *new_arr = new int[n];
+  copy(arr, arr + n, new_arr);
+
+  int max_negative = INT_MIN;
+  bool found_negative = false;
+
+  for (size_t i = 0; i < n; i++)
+  {
+    if (arr[i] < 0 && arr[i] > max_negative)
+    {
+      max_negative = arr[i];
+      found_negative = true;
+    }
+  }
+
+  if (found_negative)
+  {
+    new_arr[1] = max_negative;
+    cout << "Второй элемент заменен на максимальный отрицательный: " << max_negative << endl;
+    cout << "Копия массива после замены:" << endl;
+    print_arr(new_arr, n);
+  }
+  else
+  {
+    cout << "В массиве нет отрицательных элементов для замены." << endl;
+  }
+
+  delete[] new_arr;
+}
     
-    if (!(cin >> value) || value < 0) {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        throw runtime_error("Неверный ввод. Требуется целое число >= 0.");
-    }
-    
-    return value;
-}
-
-double getPositiveDouble(const string& prompt) {
-    double value;
-    cout << prompt;
-    
-    if (!(cin >> value) || value <= 0) {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        throw runtime_error("Неверный ввод. Требуется число > 0.");
-    }
-    
-    return value;
-}
-
