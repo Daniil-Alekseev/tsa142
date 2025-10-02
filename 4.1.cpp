@@ -1,95 +1,128 @@
 #include <iostream>
 #include <cmath>
-#include <iomanip>
 #include <limits>
-#include <string>
-
+#include <vector>
+#include <fstream>
 using namespace std;
+/**
+ * @brief Считывает значения с клавиатуры с проверкой ввода
+ * @return Возвращает значение, если оно правильное, иначе завершает программу
+ */
+double get_value();
 
 /**
-* @brief Получает числовое значение от пользователя
-* @param prompt Приглашение для ввода, отображаемое пользователю
-* @return Введенное пользователем число типа double
-*/
-double getInput(const string& prompt);
+ * @brief Вычисляет значение функции
+ * @param x Значение x
+ * @return Вычисленное значение или 0
+ */
+double calculate_expression(const double x);
 
 /**
-* @brief Получает положительное числовое значение от пользователя
-* @param prompt Приглашение для ввода, отображаемое пользователю
-* @return Введенное пользователем положительное число типа double
-*/
-double getPositiveInput(const string& prompt);
+ * @brief Создаёт файл с данными для построения графика через GNUplot утилиту
+ * @param x_values Вектор значений x
+ * @param y_values Вектор значений y
+ */
+void create_gnuplot_script(const vector<double> &x_values, const vector<double> &y_values);
 
 /**
-* @brief Вычисляет значение функции y = 3*sin(√x) + 0.39x - 3.8
-* @param x Аргумент функции (x должен быть >= 0)
-* @return Значение функции в точке x
-*/
-double calculateFunction(double x);
+ * @brief Точка входа в программу
+ * @return Возвращает 0, если программа выполнена корректно
+ */
+int main()
+{
+  setlocale(LC_ALL, "Russian");
 
-/**
-* @brief Основная функция программы
-* @details Программа вычисляет значения функции y = 3*sin(√x) + 0.39x - 3.8
-* на заданном интервале [start, end] с указанным шагом step.
-* Для значений x < 0 выводится сообщение, что они не принадлежат области определения.
-* В случае ошибок ввода выводится соответствующее сообщение и программа завершается.
-* @return 0 при успешном выполнении, 1 при ошибке ввода
-*/
-int main() {
-    // Ввод параметров
-    double start = getInput("Введите начало интервала (start): ");
-    double end = getInput("Введите конец интервала (end): ");
-    double step = getPositiveInput("Введите шаг (step): ");
+  cout << "Введите интервал: ";
+  double start = get_value();
+  double end = get_value();
 
-    // Проверка корректности интервала
-    if (start > end) {
-        cerr << "Ошибка: начало интервала должно быть меньше или равно концу." << endl;
-        return 1;
+  cout << "Введите шаг: ";
+  double step = get_value();
+
+  if (start >= end || step <= 0)
+  {
+    cout << "Некорректные параметры интервала или шага" << endl;
+    abort();
+  }
+
+  vector<double> x_values, y_values;
+
+  for (double x = start; x < end + step; x += step)
+  {
+    double y = calculate_expression(x);
+
+    if (y == 0)
+    {
+      cout << "x: " << x << endl;
+      cout << "y: Отсутствует решение" << endl;
+      cout << endl;
     }
-
-    // Настройка формата вывода (2 знака после запятой)
-    cout << fixed << setprecision(2);
-
-    // Вычисление и вывод значений функции
-    const double epsilon = numeric_limits<double>::epsilon();
-    for (double x = start; x <= end + epsilon; x += step) {
-        if (x < 0) {
-            cout << "x = " << setw(6) << x << " : не принадлежит ООФ" << endl;
-            continue;
-        }
-
-        double y = calculateFunction(x);
-        cout << "x = " << setw(6) << x << ", y = " << setw(8) << y << endl;
+    else
+    {
+      x_values.push_back(x);
+      y_values.push_back(y);
     }
+  }
 
+  create_gnuplot_script(x_values, y_values);
+
+  cout << "Данные для графика сохранены в файлы:" << endl;
+  cout << "- function_data.txt - данные функции" << endl;
+  cout << "- plot_script.plt - скрипт для GNUplot" << endl;
+
+  int result = system("gnuplot plot_script.plt");
+
+  if (result == 0)
+  {
+    cout << "✓ График успешно создан: function_plot.png" << endl;
+  }
+  else
+  {
+    cout << "✗ Ошибка при построении графика" << endl;
+  }
+
+  return 0;
+}
+
+double get_value()
+{
+  double value = 0;
+  cin >> value;
+  if (cin.fail())
+  {
+    cout << "Некорректное значение" << endl;
+    abort();
+  }
+  return value;
+}
+
+double calculate_expression(const double x)
+{
+  if (x < 0)
+  {
     return 0;
+  }
+
+  return 3 * sin(sqrt(x)) + 0.39 * x - 3.8;
 }
 
-double getInput(const string& prompt) {
-    double value;
-    cout << prompt;
-    if (!(cin >> value)) {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cerr << "Ошибка ввода: требуется числовое значение." << endl;
-        exit(1);
-    }
-    return value;
-}
+void create_gnuplot_script(const vector<double> &x_values, const vector<double> &y_values)
+{
+  ofstream data_file("function_data.txt");
+  ofstream script_file("plot_script.plt");
 
-double getPositiveInput(const string& prompt) {
-    double value = getInput(prompt);
-    if (value <= 0) {
-        cerr << "Ошибка: значение должно быть положительным." << endl;
-        exit(1);
-    }
-    return value;
-}
+  for (size_t i = 0; i < x_values.size(); i++)
+  {
+    data_file << x_values[i] << " " << y_values[i] << endl;
+  }
+  data_file.close();
 
-double calculateFunction(double x) {
-    if (x < 0) {
-        cerr << "не принадлежит ООФ" << endl;
-        exit(1);
-    }
-    return 3 * sin(sqrt(x)) + 0.39 * x - 3.8;
-}
+  script_file << "set terminal png size 800,600" << endl;
+  script_file << "set output 'function_plot.png'" << endl;
+  script_file << "set title 'График функции y = 3sin(sqrt(x)) + 0.39x - 3.8'" << endl;
+  script_file << "set xlabel 'x'" << endl;
+  script_file << "set ylabel 'y'" << endl;
+  script_file << "set grid" << endl;
+  script_file << "plot 'function_data.txt' with linespoints title 'Функция'" << endl;
+  script_file << "pause -1" << endl;
+  script_file.close();
