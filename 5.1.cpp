@@ -1,134 +1,111 @@
 #include <iostream>
 #include <cmath>
-#include <limits>
-#include <stdexcept>
-
 using namespace std;
 
-// Прототипы функций
 /**
-* @brief Вычисляет текущий член последовательности
-* @param k Номер члена последовательности (k >= 0)
-* @return Значение k-го члена
-*/
-double calculateTerm(const int k);
+ * @brief Считывает значения с клавиатуры с проверкой ввода
+ * @return Возвращает значение, если оно правильное, иначе завершает программу
+ */
+double get_value();
 
 /**
-* @brief Вычисляет сумму первых n членов последовательности
-* @param n Количество членов (должно быть >= 0)
-* @return Сумма членов
-*/
-double sumFirstNTerms(const int n);
+ * @brief Рекурсивно вычисляет факториал числа
+ * @param n Число для вычисления факториала
+ * @return Факториал числа n
+ */
+double factorial_recursive(int n);
 
 /**
-* @brief Вычисляет сумму членов последовательности с |член| >= e
-* @param e Минимальное абсолютное значение (должно быть > 0)
-* @return Сумма подходящих членов
-*/
-double sumTermsAboveEpsilon(const double e);
+ * @brief Рекурсивно вычисляет сумму ряда
+ * @param k Текущий индекс (начинается с 1)
+ * @param n Максимальный индекс
+ * @param sum Накопленная сумма
+ */
+double calculate_first_n_series_sum_recursive(int k, int n, double sum);
 
 /**
-* @brief Получает неотрицательное целое число от пользователя
-* @param prompt Сообщение для пользователя
-* @return Введенное число
-*/
-int getNonNegativeInteger(const string& prompt);
+ * @brief Рекурсивно вычисляет сумму всех членов ряда, по модулю не меньших заданного числа e
+ * @param k Текущий индекс
+ * @param eps Заданная точность
+ * @param sum Накопленная сумма
+ */
+double calculate_series_sum_above_epsilon_recursive(int k, double eps, double sum);
 
 /**
-* @brief Получает положительное число от пользователя
-* @param prompt Сообщение для пользователя
-* @return Введенное число
-*/
-double getPositiveDouble(const string& prompt);
+ * @brief Точка входа в программу
+ * @return Возвращает 0, если программа выполнена корректно
+ */
+int main()
+{
+  setlocale(LC_ALL, "Russian");
 
-/**
-* @brief Основная функция программы
-* @details Запрашивает у пользователя параметры n и e, вычисляет суммы последовательности
-* и выводит результаты на экран
-* @return 0 при успешном выполнении
-*/
-int main() {
-    // Ввод параметров
-    const int n = getNonNegativeInteger("Введите количество членов последовательности (n >= 0): ");
-    const double e = getPositiveDouble("Введите минимальное абсолютное значение (e > 0): ");
+  cout << "Сумма первых n членов ряда" << endl;
+  cout << "Введите количество элементов ряда (n > 0): ";
+  int n = get_value();
+  cout << "Сумма первых " << n << " членов ряда: " << calculate_first_n_series_sum_recursive(1, n, 0.0) << endl;
 
-    // Вычисление сумм
-    const double sum_n = sumFirstNTerms(n);
-    const double sum_e = sumTermsAboveEpsilon(e);
+  cout << "Сумма членов ряда, не меньших по модулю ε" << endl;
+  cout << "Введите значение e (e > 0): ";
+  double eps = get_value();
+  cout << "Сумма членов ряда, не меньших по модулю " << eps << ": " << calculate_series_sum_above_epsilon_recursive(1, eps, 0.0) << endl;
 
-    // Вывод результатов
-    cout << "Сумма первых " << n << " членов последовательности: " 
-         << sum_n << endl;
-    cout << "Сумма членов последовательности с |член| >= " << e 
-         << ": " << sum_e << endl;
-
-    return 0;
+  return 0;
 }
 
-// Реализации функций
-double calculateTerm(const int k) {
-    static double prev_term = 1.0/12.0; // a₀
-
-    if (k == 0) {
-        return prev_term;
-    }
-
-    // Рекуррентное соотношение: aₖ = -aₖ₋₁ * k/((k+2)(k+3))
-    prev_term *= -1.0 * k / ((k + 2) * (k + 3));
-    return prev_term;
+double get_value()
+{
+  double value = 0;
+  cin >> value;
+  if (cin.fail())
+  {
+    cout << "Некорректное значение" << endl;
+    abort();
+  }
+  if (value <= 0)
+  {
+    cout << "Значение должно быть положительным" << endl;
+    abort();
+  }
+  return value;
 }
 
-double sumFirstNTerms(const int n) {
-    double sum = 0.0;
-    for (int k = 0; k < n; ++k) {
-        sum += calculateTerm(k);
-    }
+double factorial_recursive(int n)
+{
+  if (n == 0 || n == 1)
+  {
+    return 1.0;
+  }
+  return n * factorial_recursive(n - 1);
+}
+
+double calculate_first_n_series_sum_recursive(int k, int n, double sum)
+{
+  if (k > n)
+  {
     return sum;
+  }
+
+  double numerator = pow(-1, k);
+  double denominator = factorial_recursive(k + 2) * factorial_recursive(k + 3);
+  double term = numerator / denominator;
+
+  sum += term;
+
+  return calculate_first_n_series_sum_recursive(k + 1, n, sum);
 }
 
-double sumTermsAboveEpsilon(const double e) {
-    if (e <= 0) {
-        throw invalid_argument("e должно быть > 0");
-    }
+double calculate_series_sum_above_epsilon_recursive(int k, double eps, double sum)
+{
+  double numerator = pow(-1, k);
+  double denominator = factorial_recursive(k + 2) * factorial_recursive(k + 3);
+  double term = numerator / denominator;
 
-    double sum = 0.0;
-    double term;
-    int k = 0;
-
-    while (true) {
-        term = calculateTerm(k);
-        if (abs(term) < e) {
-            break;
-        }
-        sum += term;
-        k++;
-    }
-    
+  if (fabs(term) < eps)
+  {
     return sum;
-}
+  }
 
-int getNonNegativeInteger(const string& prompt) {
-    int value = 0;
-    cout << prompt;
+  sum += term;
 
-    if (!(cin >> value) || value < 0) {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        throw runtime_error("Неверный ввод. Требуется целое число >= 0.");
-    }
-
-    return value;
-}
-
-double getPositiveDouble(const string& prompt) {
-    double value = 0.0;
-    cout << prompt;
-
-    if (!(cin >> value) || value <= 0) {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        throw runtime_error("Неверный ввод. Требуется число > 0.");
-    }
-
-    return value;
+  return calculate_series_sum_above_epsilon_recursive(k + 1, eps, sum);
 }
