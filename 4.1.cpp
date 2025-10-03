@@ -93,5 +93,5 @@ double calculate_expression(const double x)
 
 bool isOOF(double x)
 {
-  return (fabs(x) > std::numeric_limits<double>::epsilon());
+  return x >= 0;
 }
