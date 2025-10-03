@@ -9,27 +9,30 @@ using namespace std;
 double get_value();
 
 /**
- * @brief Рекурсивно вычисляет факториал числа
- * @param n Число для вычисления факториала
- * @return Факториал числа n
+ * @brief Вычисляет следующий член ряда на основе предыдущего
+ * @param k Текущий индекс
+ * @param prev_term Предыдущий член ряда
+ * @return Следующий член ряда a_k
  */
-double factorial_recursive(int n);
+double get_next_term(int k, double prev_term);
 
 /**
  * @brief Рекурсивно вычисляет сумму ряда
  * @param k Текущий индекс (начинается с 1)
  * @param n Максимальный индекс
  * @param sum Накопленная сумма
+ * @param term Член ряда
  */
-double calculate_first_n_series_sum_recursive(int k, int n, double sum);
+double calculate_first_n_series_sum_recursive(int k, int n, double sum, double term);
 
 /**
  * @brief Рекурсивно вычисляет сумму всех членов ряда, по модулю не меньших заданного числа e
  * @param k Текущий индекс
  * @param eps Заданная точность
  * @param sum Накопленная сумма
+ * @param term Член ряда
  */
-double calculate_series_sum_above_epsilon_recursive(int k, double eps, double sum);
+double calculate_series_sum_above_epsilon_recursive(int k, double eps, double sum, double term);
 
 /**
  * @brief Точка входа в программу
@@ -42,12 +45,12 @@ int main()
   cout << "Сумма первых n членов ряда" << endl;
   cout << "Введите количество элементов ряда (n > 0): ";
   int n = get_value();
-  cout << "Сумма первых " << n << " членов ряда: " << calculate_first_n_series_sum_recursive(1, n, 0.0) << endl;
+  cout << "Сумма первых " << n << " членов ряда: " << calculate_first_n_series_sum_recursive(1, n, 0, -1.0 / 144.0) << endl;
 
   cout << "Сумма членов ряда, не меньших по модулю ε" << endl;
   cout << "Введите значение e (e > 0): ";
   double eps = get_value();
-  cout << "Сумма членов ряда, не меньших по модулю " << eps << ": " << calculate_series_sum_above_epsilon_recursive(1, eps, 0.0) << endl;
+  cout << "Сумма членов ряда, не меньших по модулю " << eps << ": " << calculate_series_sum_above_epsilon_recursive(1, eps, 0, -1.0 / 144.0) << endl;
 
   return 0;
 }
@@ -69,43 +72,45 @@ double get_value()
   return value;
 }
 
-double factorial_recursive(int n)
+double get_next_term(int k, double prev_term)
 {
-  if (n == 0 || n == 1)
-  {
-    return 1.0;
-  }
-  return n * factorial_recursive(n - 1);
+  return -prev_term / ((k + 2) * (k + 3));
 }
 
-double calculate_first_n_series_sum_recursive(int k, int n, double sum)
+double calculate_first_n_series_sum_recursive(int k, int n, double sum, double term)
 {
   if (k > n)
   {
     return sum;
   }
 
-  double numerator = pow(-1, k);
-  double denominator = factorial_recursive(k + 2) * factorial_recursive(k + 3);
-  double term = numerator / denominator;
+  double next_term = get_next_term(k, term);
 
-  sum += term;
+  if (k == 1)
+  {
+    next_term = term;
+  }
 
-  return calculate_first_n_series_sum_recursive(k + 1, n, sum);
+  sum += next_term;
+
+  return calculate_first_n_series_sum_recursive(k + 1, n, sum, next_term);
 }
 
-double calculate_series_sum_above_epsilon_recursive(int k, double eps, double sum)
+double calculate_series_sum_above_epsilon_recursive(int k, double eps, double sum, double term)
 {
-  double numerator = pow(-1, k);
-  double denominator = factorial_recursive(k + 2) * factorial_recursive(k + 3);
-  double term = numerator / denominator;
+  double next_term = get_next_term(k, term);
 
-  if (fabs(term) < eps)
+  if (k == 1)
+  {
+    next_term = term;
+  }
+
+  if (fabs(next_term) < eps)
   {
     return sum;
   }
 
-  sum += term;
+  sum += next_term;
 
-  return calculate_series_sum_above_epsilon_recursive(k + 1, eps, sum);
+  return calculate_series_sum_above_epsilon_recursive(k + 1, eps, sum, term);
 }
